@@ -8,7 +8,7 @@ TAPAK is an end-to-end ML pipeline that identifies optimal street vendor (PKL) l
 
 ## Demo Output
 
-The pipeline produces an interactive Folium map (`output/bandung_vendor_zones.html`) color-coded by suitability:
+The pipeline produces an interactive Folium map (`output/maps/bandung_vendor_zones.html`) color-coded by suitability:
 
 | Zone | Color | Score |
 |------|-------|-------|
@@ -23,7 +23,7 @@ The pipeline produces an interactive Folium map (`output/bandung_vendor_zones.ht
 ```
 Tapak/
 ├── src/
-│   ├── tapak_pipeline.py          # Main ML pipeline (Steps 1–14)
+│   ├── tapak_pipeline.py          # Main ML pipeline (Steps 1–18)
 │   └── fetch_overpass_data.js     # Browser console script to fetch OSM data
 ├── data/
 │   ├── population_density.csv     # BPS Bandung kecamatan population data (manual)
@@ -32,15 +32,12 @@ Tapak/
 │       ├── overpass_4b_civic.json
 │       ├── overpass_4c_parks.json
 │       └── overpass_4d_roads.json
-├── output/                        # All generated artifacts
-│   ├── feature_matrix.csv
-│   ├── grid_scored.csv
-│   ├── tapak_model.json
-│   ├── confusion_matrix.png
-│   ├── shap_summary_beeswarm.png
-│   ├── shap_bar_importance.png
-│   ├── shap_waterfall_sample.png
-│   └── bandung_vendor_zones.html
+├── output/                        # All generated artifacts (reorganized structure)
+│   ├── models/                    # Trained models (tapak_model.json)
+│   ├── plots/                     # Heatmaps, SHAP, and spatial sensitivity maps
+│   ├── tables/                    # CSV statistical tables (VIF, model comparison, recommendations)
+│   ├── data/                      # Result grid datasets (grid_scored, refined_250m)
+│   └── maps/                      # Interactive HTML Folium map (bandung_vendor_zones.html)
 ├── pyproject.toml
 └── README.md
 ```
@@ -103,7 +100,7 @@ STEP 9: Train XGBoost Model
 ROC-AUC: 0.9737
 ```
 
-Open `output/bandung_vendor_zones.html` in your browser to explore the interactive map.
+Open `output/maps/bandung_vendor_zones.html` in your browser to explore the interactive map.
 
 ---
 
@@ -118,10 +115,10 @@ Open `output/bandung_vendor_zones.html` in your browser to explore the interacti
 | **5** | Compute real features: `poi_score`, `traffic_score` |
 | **6** | Fabricate synthetic features: `signal_score`, `construction_index`, `vendor_hotspot_score` |
 | **7** | Rule-based labeling (Perda PKL Bandung regulations) |
-| **8** | Assemble feature matrix → `output/feature_matrix.csv` |
+| **8** | Assemble feature matrix → `output/data/feature_matrix.csv` |
 | **9** | Train XGBoost classifier with early stopping |
 | **10** | SHAP explainability plots |
-| **11** | Score all grid cells → `output/grid_scored.csv` |
+| **11** | Score all grid cells → `output/data/grid_scored.csv` |
 | **12** | Generate Folium interactive map |
 | **13** | Automated sanity check against known PKL hotspots |
 | **14** | Output file summary |

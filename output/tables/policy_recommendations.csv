@@ -1,0 +1,3 @@
+Zone,Cell Count,Mean Vendor Density,Top Promoting Factors,Top Suppressing Factors,Policy Recommendation
+Negative Sensitivity,771,12.2874155,public_service_density (+0.042); catering_density (+0.002),func_mixture_degree (-0.329); working_pop_density (-0.333); commercial_density (-0.510),Buffer zone: minimal vendor activity expected. No active intervention needed.
+Positive Sensitivity,385,18.768175,pop_density_norm (+1.513); commercial_density (+1.104); func_mixture_degree (+0.819),public_service_density (-0.167); catering_density (-0.174); open_space_density (-0.598),Growth zone: monitor and plan for emerging vendor activity. Consider designating flexible vendor spaces in underserved sub-areas.

@@ -1,0 +1,14 @@
+Feature,VIF
+intersection_density,4.1140744790442545
+secondary_road_density,3.2049902511610115
+commercial_density,2.858689637128657
+catering_density,2.735243798493015
+public_service_density,2.505283461323958
+trunk_road_density,1.8144153633821254
+working_pop_density,1.7262024333474753
+pop_density_norm,1.702303649311072
+business_office_density,1.5889859287302175
+floor_area_proxy,1.5858926385658594
+func_mixture_degree,1.412707120054474
+open_space_density,1.3402951001466692
+recreational_density,1.263569080989177
