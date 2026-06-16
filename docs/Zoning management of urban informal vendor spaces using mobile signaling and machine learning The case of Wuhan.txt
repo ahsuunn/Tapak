@@ -1,0 +1,1558 @@
+Zoning management of urban informal vendor spaces using mobile
+signaling and machine learning: The case of Wuhan
+Heng Zhou a,b,c
+, Kui Yang d,* , Jingnan Huang e,f
+, Jun Huang g
+, Yixuan Gao e
+, Jinting Zhang d
+,
+Yong Chen b
+, Mengya Yu h
+a School of Urban Construction, Wuhan University of Science and Technology, Wuhan 430081, China b School of Resources and Environmental Engineering, Wuhan University of Science and Technology, Wuhan 430081, China c Hubei Engineering Research Center of Urban Renewal, Wuhan 430081, China d School of Resource and Environmental Sciences, Wuhan University, Wuhan 430079, China e School of Urban Design, Wuhan University, Wuhan 430079, China f Hubei Habitat Environment Research Centre of Engineering and Technology, Wuhan 430079, China g College of Digital Construction and Blasting Engineering, Jianghan University, Wuhan 430056, China h Wuhan Planning & Design Institute, Wuhan 430023, China
+ARTICLE INFO
+Keywords:
+Urban informal economy
+Vendor space
+Mobile signaling
+Time-space-population screening method
+Machine learning
+Sensitivity zoning
+ABSTRACT
+The vendor economy is an important component of the urban informal economy and serves as a valuable
+"lubricant" to enhance social inclusivity and stimulate socio-economic activity. However, urban vendor spaces
+have several negative effects, such as encroaching on public spaces, affecting the city’s image, causing traffic
+congestion, contributing to environmental pollution, and triggering safety issues. Studying the distribution
+characteristics and formation mechanisms of urban vendor spaces can provide support for the formulation of
+governance policies related to these areas. Existing research is often limited by data and methods, predominantly
+relying on case studies, with a lack of comprehensive urban-level investigations. This limitation increases the
+likelihood of failure in spatial governance policies. This paper utilizes mobile signaling data and constructs a
+time-space-population screening method to identify vendor spaces across the entire urban area. It employs
+XGBoost and SHAP to analyze the influencing mechanisms of vendor spaces, and ultimately conducts a clustering
+analysis based on the SHAP values of various factors to identify sensitivity zones for vendor spaces, thereby
+proposing site selection and governance recommendations for vendors. The study finds that: (1) In the main
+urban area of Wuhan, informal street vendor spaces have formed two primary aggregation zones and four secondary aggregation zones, primarily linked to large communities, schools, sports centers, commercial districts,
+and hospitals. (2) Among the factors affecting vendor aggregation, consumer demand-related elements have the
+highest average importance, followed by facility density-related elements, and lastly traffic environment-related
+elements. (3) In high-attraction areas for informal street vendor spaces, the mean RFD (Recreational facilities
+density) is the highest, while areas along rivers and lakes generally do not attract vendors easily. (4) We have
+identified some previously unrecognized distributions of vendors, such as the transitional zones in Hongshan
+District and Jiangxia District, which represent potential development areas for vendor space management. These
+research findings provide valuable references for vendor space governance in large cities.
+1. Introduction
+1.1. Research background
+The informal economy refers to economic activities that are not
+included in official statistical systems and lack formal regulation and
+institutional protection. This economic model is particularly prominent
+in urban environments, as it provides livelihood opportunities for
+marginalized groups while also reflecting inequalities in urban development. As Roy (2005) points out in his paper, urban informality is not
+only a manifestation of economic practices but also a product of social
+space, highlighting the complex relationship between urban planning
+* Corresponding author.
+E-mail address: yangkui@whu.edu.cn (K. Yang).
+Contents lists available at ScienceDirect
+Sustainable Cities and Society
+journal homepage: www.elsevier.com/locate/scs
+https://doi.org/10.1016/j.scs.2025.106858
+Received 29 May 2025; Received in revised form 23 September 2025; Accepted 24 September 2025
+Sustainable Cities and Society 133 (2025) 106858
+Available online 25 September 2025
+2210-6707/© 2025 Elsevier Ltd. All rights are reserved, including those for text and data mining, AI training, and similar technologies.
+and social dynamics. In this context, the vendor economy, as a typical
+form of informal economy (Recchi, 2020), provides employment opportunities for low-income and unemployed populations in cities
+(Lemessa et al., 2021) and offers diverse consumption choices for citizens (Maneepong & Walsh, 2013; Flock & Breitung, 2015). It serves as a
+valuable "lubricant" for enhancing social inclusivity and revitalizing the
+socio-economic landscape (Onodugo et al., 2016). According to the
+"2023–2027 Research Report and Investment Outlook on China’s
+Informal street vendor Economy" by Zhiyan Advisory Industry Research
+Institute, the market size of the vendor economy in China grew from
+22.59 trillion yuan in 2018 to 31.48 trillion yuan in 2022, highlighting
+its significant economic value.
+However, the clustering of spaces created by the vendor economy is a
+topic of much debate (Huang et al., 2019; Kamete, 2018). To maintain
+their businesses, vendors often congregate in prime urban locations,
+such as city squares, along streets, at entrances and exits of transportation hubs, road intersections, and shopping center entrances
+(Lindell, 2019; Bandauko & Arku, 2024). In these locations, vendors
+create numerous informal spaces that are often characterized by blurred
+boundaries, diverse forms, and varying scales.
+These vendor spaces inevitably encroach upon public urban spaces,
+impacting the urban landscape, causing traffic congestion, contributing
+to environmental pollution, and provoking safety concerns (Ojeda &
+Pino, 2019). In response to these issues, some cities have implemented
+compulsory removal measures for vendor spaces (Thomas Devlin, 2018;
+Boonjubun, 2017), which have proven to be inhumane and challenging
+to execute successfully (Huang et al., 2019; Linares, 2018;
+Pel´
+aez-Higuera et al., 2023). Urban vendor spaces are an organic
+component of public urban spaces and a significant subject of urban
+spatial governance. Therefore, identifying the locations of vendor spaces
+and systematically studying their layout characteristics and
+site-selection factors can aid in developing targeted spatial regulatory
+strategies. This can help guide the development of vendor spaces in a
+non-disruptive manner, thereby enhancing the management of urban
+public spaces.
+1.2. Literature review
+In recent years, research (Anaafo et al., 2024; Choueiri et al., 2025;
+Elshater & Abusaada, 2024; Martinez & Rivera-Acevedo, 2018) on
+vendor spaces has primarily focused on four aspects: the identification of
+vendor spaces, the site-selection logic of vendor spaces, the characteristics of vendor spaces, and governance policies related to vendor spaces.
+There are mainly three methods for identifying vendor spaces. First,
+many scholars have used interviews (Huang et al., 2019; Sun et al.,
+2022; Flock & Breitung, 2015; Thanh & Duong, 2022; Maneepong &
+Walsh, 2013) and questionnaires (Martínez et al., 2018; Anaafo et al.,
+2024) to depict and identify vendor spaces. Second, urban vendor space
+distribution has been identified based on geographical spatial information from urban governance event data and resident complaint data
+collected by smart city governance platforms (Li et al., 2022). Third,
+vendor spaces and vendors have been identified through street view
+photographs and deep learning techniques (Liu & Liu, 2022).
+There are numerous factors that influence the site selection of vendor
+spaces. The location of vendor spaces is related to customer proximity,
+as vendors tend to congregate around their target consumer populations
+(Anaafo et al., 2024). It is also associated with population density, with a
+new generation of informal street vendors increasingly appearing in the
+centers of commercial districts (CBD) and tourist areas (Maneepong &
+Walsh, 2013). Vendors often gather near schools (Widjajanti, 2016),
+community parks, and squares (Sun et al., 2022).
+Additionally, the accessibility of transportation plays a role, with
+vendor spaces frequently located near transportation hubs, bus stops,
+and major roads, allowing them to attract large customer flows while
+facilitating their own travel (Anaafo et al., 2024; Maneepong & Walsh,
+2013). The site selection of vendor spaces also depends on spatial costs.
+Traditional vendors tend to cluster in densely populated areas and locations near lower-level roads, distancing themselves from CBDs and
+high-rent areas (Liu & Liu, 2022).
+The comfort level of the space is another consideration, as key factors
+include the ease of placing, displaying, and storing goods, as well as
+whether it offers buyers the freedom to move (Widjajanti, 2016).
+Moreover, regulatory policies affect site selection; in response to threats
+of eviction by police, vendors often congregate on sidewalks, public
+lands, at bus stops, and street corners (Kazembe et al., 2019). Regarding
+the mechanisms of influence, most studies are based on geographic
+detectors, geographically weighted regression, and correlation analysis,
+resulting in reflective values that do not capture the direction of influence of various factors (Yang et al., 2025). Some studies have employed
+SHAP analysis, which can effectively explain the direction of influence,
+but struggle to reflect spatial heterogeneity (Yi et al., 2024) and provide
+precise spatial information for policy formulation.
+Research on the characteristics of vendor spaces primarily focuses on
+three aspects. First, vendor spaces exhibit spatiotemporal fluidity.
+Vendors choose locations based on customer flow characteristics. For
+example, informal street vendors tend to congregate around school
+openings (from 6 AM to 8 AM) and closings (from 5 PM to 7 PM) on
+weekdays, while on weekends, they gather in community parks and
+squares (Sun et al., 2022). Moreover, to respond to urban management
+and enforcement efforts, vendors continuously reconfigure their spaces
+(Lindell, 2019), relying on informal relationships and networks to
+migrate to relatively safer locations and operate at specific times of the
+day (Adama, 2020). Second, vendor spaces also exhibit exclusivity.
+There is a conflict between vendor spaces and public spaces. Vendors set
+up semi-fixed stands, sidewalk stalls, and settlements (Pelaez-Higuera ´
+et al., 2023), occupying public space through self-establishment,
+attachment, overlaying, and intervention (Ojeda & Pino, 2019). The
+extent of this conflict is closely related to the scale and form of informal
+street vendors as well as their respective locations. Additionally, there
+are internal conflicts within vendor spaces stemming from competition
+for selling and storage areas (Widjajanti, 2016). Third, vendor spaces
+can be destructive. They have a negative impact on the quality of the
+surrounding built environment, manifesting in aspects such as aesthetic
+disorder, encroachment on land usage cycles, visual obstructions,
+improper waste disposal, and land use conversion (Farinmade et al.,
+2018).
+Vendor space management policies can be categorized into three
+main types. The first type of policy involves the direct removal of vendor
+spaces. Urban authorities often perceive street vending as a symbol of
+underdevelopment, believing that vendor spaces negatively impact the
+city’s image. For example, New York City has dispatched law enforcement to clear vendor spaces (Thomas Devlin, 2018; Boonjubun, 2017).
+The second type of policy seeks to regulate the activities of commercial
+vendors and incorporate their operations within a framework of urban
+authorization. This is achieved through zoning, time controls, and urban
+design, allowing informal street vendors to conduct economic activities
+in clean, safe, and orderly vendor spaces (Huang et al., 2019;
+Pelaez-Higuera ´ et al., 2023; Flock & Breitung, 2015; Ojeda & Pino,
+2019; Martínez et al., 2018). The third type is an inclusive policy that
+encourages the free development of vendor spaces without any regulation (Boonjubun, 2017; Liu & Liu, 2022).
+Despite the rich research findings on vendor spaces, several limitations still exist. First, the identification of vendor spaces is challenging
+and cannot cover the entire urban area. The vendor economy is characterized by mobility, flexibility, and opacity, making it difficult for
+traditional data sources and methods to identify vendor spaces on an
+urban scale. While interview surveys provide more accurate identification results, they often only reflect localized spatial conditions, failing to
+cover the broader urban context, leaving the actual situation of vendor
+spaces in the city unknown (Liu & Liu, 2022). Complaint data identification methods can identify a larger number of vendor spaces; however,
+since the data is derived only from negative impact events, they can only
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+2
+pinpoint problematic vendor spaces and cannot identify compliant,
+issue-free vendor spaces, resulting in an incomplete coverage of the
+entire urban area.
+Street-view identification methods can accurately identify vendors
+(Liu & Liu, 2022), but due to the randomness of street view photos and
+inconsistencies in the timing of the photographs, the identified vendor
+spaces may be incidental and do not accurately reflect the spatiotemporal distribution of vendor spaces in the city. Furthermore, since street
+view photos are only available along urban road networks, the identification results are limited to areas adjacent to the roads. Second, the
+analysis of location factors and spatial characteristics is often
+case-specific. Due to the limitations of identification methods, the
+existing location logic primarily stems from analyses of specific vendor
+spaces at the street or block level (Li et al., 2018; Pelaez-Higuera ´ et al.,
+2023; Martínez et al., 2017; Ojeda & Pino, 2019; Widjajanti, 2016), with
+little systematic analysis of the location logic and spatial distribution
+characteristics of vendor spaces from an urban perspective (Liu & Liu,
+2022). Third, vendor management policies struggle to be effectively
+implemented in space. The lack of a comprehensive analysis covering
+the entire urban area makes it difficult to identify vendor space issues in
+different locations, leading to management policy recommendations
+that are not tailored to specific contexts.
+Therefore, systematically identifying vendor locations across the city
+is crucial. This study uses mobile phone signal data to develop a spatiotemporal screening method that accurately detects vendor locations
+citywide. It further employs XGBoost and SHAP to analyze the mechanisms shaping these locations. An innovative integration of clustering
+algorithms enables spatial clustering of the strength of variable influences, identifying vendors’ sensitive areas. This provides a theoretical
+basis for vendor siting and management policies and will help governments determine which measures are most effective in which locations.
+We treat vendor space as a data-driven planning problem, aiding sustainable urban development.
+2. Materials and methods
+2.1. Study area
+Wuhan, the capital of Hubei Province in China, is also known as the
+’thoroughfare of nine provinces’ and is located at the center of China’s
+economic geography (Fig. 1). It is also the largest inland traffic hub for
+water, land, and air transportation in China, as well as the shipping
+center of the middle Yangtze River. With a total area of 8569.15 km2 and
+a resident population of 13.774 million in 2023, the city has a regional
+GDP of 2001.165 billion yuan. Its superior transportation conditions,
+traditional dock culture, large population base, and diverse urban spaces
+make Wuhan a fertile ground for the vendor economy. This study focuses on the main urban area within the third ring road of Wuhan,
+encompassing approximately 52,145 hectares and covering most regions of Wuchang District, Jiang’an District, Jianghan District, Qiaokou
+District, Hanyang District, Qingshan District, and Hongshan District.
+2.2. Data sources and processing
+The data sources involved in this study are detailed in Table 1. The
+mobile signaling data is sourced from China Unicom user data, covering
+the period from June 3 to June 16, 2019. The data utilized is from before
+the pandemic and has not been affected by public events or policy
+regulations. June is the most comfortable time of year in Wuhan, and it
+falls within a non-holiday period, avoiding any seasonal distortions.
+Noise reduction processing was applied to the mobile signaling data
+based on the DaaSBI data platform, which removed duplicate, redundant, and erroneous data, as well as encrypted mobile identification
+numbers after excluding user attributes, ensuring that no personal information of mobile users is involved. The data includes fields such as
+user codes, location grid numbers, residence start and end time information, and signaling duration. To quantitatively measure the spatial
+aggregation of informal street vendors in different areas of the main
+urban area. Considering the service radius of base stations: The coverage
+area of communication base station cells is approximately 100 to 500 m
+in urban areas and between 400 and 1000 m in suburban areas. This
+study constructs a 500 × 500 m grid based on the spatial scale of most
+functional groups in Wuhan (Chen et al., 2023), and performs zonal
+statistics on the total distribution of urban vendor activity trajectories
+Fig. 1. Location of study area (Source of the base map: http://www.guihuayun.com/).
+Table 1
+Sources of indicators.
+Data name Source
+Mobile phone signalling data China Unicom Subscriber Data
+Building and Transportation Data https://www.tianditu.gov.cn
+POI https://lbs.amap.com/
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+3
+and built environment characteristics within each grid unit. All the data
+has been de-identified in compliance with ethical requirements.
+The POI data is sourced from Amap (https://lbs.amap.com/), which
+includes data on residential communities, squares, dining facilities,
+entertainment facilities, and more. After filtering, correcting, deduplicating, and spatial clipping for initial data cleaning, approximately 2000
+valid POI data points were obtained. The road network data comes from
+OpenStreetMap (https://www.openstreetmap.org/), from which valid
+road network data was obtained through spatial correction and breakpoint repairs. The building data is acquired from Tian Di Tu (htt
+ps://www.tianditu.gov.cn/), from which information such as building
+footprint area and the number of floors is extracted. Population data is
+derived from mobile signaling data.
+2.3. Methods
+2.3.1. Research framework
+The research framework is divided into four parts (Fig. 2): (1) Based
+on mobile signaling data, a time-crowd-space screening method is
+constructed to identify urban vendor spaces and summarize their distribution characteristics. (2) An indicator system for influencing factors
+is developed, and the optimal XGBoost model is selected by comparing
+the results of OLS, Geographically Weighted Regression, and XGBoost to
+train and simulate the relationships between various factors and the
+vendor population. SHAP values are then used to explain the importance, driving direction, and dependence intervals of each factor. (3)
+Based on the SHAP values of the various factors, K-Means, DBSCAN, and
+Agglomerative Hierarchical Clustering results are compared, with KMeans selected to cluster the SHAP values and identify sensitivity zones
+for vendor spaces. (4) Policy recommendations are proposed from the
+perspectives of vendor space structural regulation and site selection
+guidance.
+2.3.2. Time-space-population screening method
+Mobile signaling data covers every mobile phone holder, encompassing a large amount of user and geographic information. It no longer
+relies on small sample sampling, allowing for a better reflection of
+overall temporal and spatial patterns, which makes the analysis results
+more representative and reliable. On the other hand, mobile signaling
+data is dynamic and reflects the real-time spatial positions of phone
+holders, including movement trajectories and activity hotspots. This
+makes mobile signaling data a powerful tool for studying population
+mobility, urban activities, and spatial distribution issues. Therefore,
+selecting mobile signaling data can somewhat alleviate the difficulties in
+data sample extraction caused by the mobility, temporality, and instability characteristics of vendors.
+Fig. 2. Research framework.
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+4
+The timing of vendors’ operational activities is crucial for attracting
+target user groups. There are differences in foot traffic and consumption
+demands during different time periods, so vendors need to adjust their
+business strategies based on the activity times and consumption habits of
+their target users. By studying the temporal distribution of the target
+user group, the most suitable time period for operations can be determined to provide products and services when user demand is highest.
+This research selects target user groups from a temporal perspective,
+making judgments and establishing screening rules based on the travel
+characteristics of vendor populations to measure the geographic locations of vendor spaces. Ultimately, the following screening rules are
+formulated (Fig. 3).
+(1) Preliminary Screening
+The peak hours for vendors to set up their stalls are selected as
+follows: morning from 6:00 to 9:00, midday from 11:00 to 14:00,
+and evening from 17:00 to 00:00. Users whose signaling data
+occurs within these three time periods are filtered and labeled as
+Database A.
+Considering factors such as time costs and distance costs
+associated with changing stall locations, vendors are generally
+inclined to choose a fixed location for their operations, and the
+duration typically exceeds 2 h. Thus, we screened from database
+A users who accumulated at least 2 h in the same grid cell and
+who appeared on at least 9 of the 14 days (to exclude typical
+informal-economy workers such as home-visit installers), and
+labeled them as database B.
+(2) Identifying Permanent Residents
+The study first screens each user in Database B, filtering those
+who appeared at the same base station for a cumulative total of 4
+h or more during the nighttime from 10 PM to 5 AM on at least 9
+out of 14 days between June 3 and June 16, 2019. These users are
+labeled as Database C.
+(3) Identifying Regular Employees
+In contrast to the instability of business activities among
+informal employment groups such as vendors, this study defines
+individuals with long-term and stable work locations and hours
+within a specific time period as regular employees. To identify
+regular employees, each user in Database B is screened for those
+who appeared at the same base station for a cumulative total of 4
+h or more during the working hours from 9 AM to 7 PM on at least
+6 out of 10 days between June 3 to 7 and June 10 to 14, 2019.
+These users are labeled as Database D.
+(4) Identifying Occasional Leisure Population
+The leisure population exhibits more flexibility compared to
+the vendor group and typically does not choose to stay at the
+same location for multiple days. Therefore, users who appear in
+the same unit fewer than 2 times during the statistical period are
+labeled as occasional leisure population and marked as Database
+E.
+(5) Identifying Vendor Population
+First, users who meet the duration requirements for vending
+during peak hours are identified. Based on this, the permanent
+residents and regular employees are filtered out. Thus, the vendor
+population can be approximated within a certain margin of error
+as follows: Vendor Population = Target Period Stay Population B
+- Permanent Residents C - Regular Employees D - Occasional
+Leisure Population E.
+Fig. 3. Vendor Population Screening Method.
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+5
+2.3.3. Cold and hot spot analysis (Getis-Ord G*) method
+Cold and hot spot analysis typically uses the Local Getis-Ord G* index
+method to determine whether there are statistically significant highvalue and low-value areas within a specific region (Yang et al., 2024).
+The hot spot analysis tool calculates the Getis-Ord G* index for each data
+element in the dataset and obtains a z-score. By assessing the magnitude
+of the z-scores, it is possible to determine the degree of spatial clustering
+of the elements. The spatial location of the clustering hotspots can then
+be obtained based on the geographic location of the elements themselves. The calculation formula is:
+G∗
+i (d) = ∑n
+j
+Wij(d)Xj
+/∑Xj (1)
+The standardized form of G∗
+i (d) is obtained as follows:
+Z
+(
+G∗
+i
+)
+= G∗
+i − E
+(
+G∗
+i
+)
+̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅
+Var(
+G∗
+i
+√ )
+(2)
+where E
+(
+G∗
+i
+)
+and Var(
+G∗
+i
+)
+represent the expected value and variance of
+G∗
+i , respectively. Wij is the spatial weight. If Z
+(
+G∗
+i
+)
+is positive and high, it
+indicates that the values surrounding ii are relatively high and exhibit
+spatial clustering characteristics, indicating a hot spot area. Conversely,
+if Z
+(
+G∗
+i
+)
+is negative, it suggests that the values surrounding ii are relatively low and do not exhibit spatial clustering characteristics, indicating a cold spot area. Furthermore, when Z
+(
+G∗
+i
+) is positive and the
+score is higher, the degree of clustering for hot spots increases.
+Conversely, when Z
+(
+G∗
+i
+)
+is negative and the score is lower, the degree of
+clustering for cold spots also increases (Zhang et al., 2024). To understand the clustering characteristics of vendors space, we used this
+technique to explore the distribution of hotspots and cold spots of street
+vendors in Wuhan.
+2.3.4. Functional mixture degree
+The functional mixture degree represents the diversity of functions in
+a certain area. A higher mixture degree indicates greater diversity in that
+area, meaning it can provide more urban functions and have a more
+comprehensive variety of functions. The calculation formula is:
+Pi = Ti
+Ai
+(3)
+Smin = −
+∑n
+i
+Pi ×
+( logPi
+log10)
+(4)
+where Pi represents the proportion of a certain type of POI within a
+defined unit, Ti denotes the number of that type of POI in unit i , Ai
+represents the total number of POIs in unit i, and Smin indicates the
+functional mixture degree. The value of the functional mixture degree
+ranges from 0 to 1, with values closer to 1 indicating a more even distribution of various functions within the defined unit. We treated
+functional mixture degree as a variable to explore its nonlinear impact
+on the spatial distribution of street vendors.
+2.3.5. Pearson correlation coefficient
+The Pearson correlation coefficient is used to measure the strength of
+the linear relationship between two variables (Wang et al., 2024). The
+calculation formula is:
+r =
+∑n
+i=1(xi − x)(yi − y) ̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅
+∑ ̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅ n
+i=1(xi − x)
+2∑n
+i=1(yi − y)
+2
+√ (5)
+where xi and yi represent the i th observed values of variables x and y,
+respectively.x and y are the averages of the two variables, n is the
+number of observations, and r is the correlation coefficient, which
+ranges from − 1 to 1, where 0 indicates no linear relationship, positive
+values indicate a positive correlation, and negative values indicate a
+negative correlation. We used correlation coefficients to investigate the
+relationships between the variables that influence the spatial distribution of street vendors and excluded some redundant variables based on
+the degree of multicollinearity.
+2.3.6. XGBoost
+XGBoost is an efficient machine learning algorithm based on the
+gradient boosting framework (Yang et al., 2025). It prevents overfitting
+through regularization, approximates the loss function more accurately
+using a second-order Taylor expansion, and selects the optimal tree
+structure through split gain, thereby efficiently generating models. It
+stands out in terms of accuracy, efficiency, and generalization ability,
+and is widely used in tasks such as classification, regression, and
+ranking. The calculation formula is:
+ŷi = ∑k
+k=1
+fk(xi), fk ∈ F (6)
+where ŷi is the predicted value for the i th sample, fk(xi) is the predicted
+value from the k th tree for the sample xi, and F is the set of all possible
+tree structures. Here, ŷi represents the predicted spatial density of street
+vendors, and xi represents the selected influencing factors.
+2.3.7. SHAP
+SHAP (SHapley Additive exPlanations) is a model interpretation
+method based on the Shapley value from game theory (Yang et al.,
+2025), used to quantify the contribution of each feature to the model’s
+predictions, addressing the "black box" problem of XGBoost models. It
+can provide local explanations for individual predictions (such as force
+plots) to illustrate the specific direction (positive/negative) and strength
+of each feature’s impact on a single sample’s prediction, as well as reveal
+the core features relied upon by XGBoost through global feature
+importance ranking (such as summary plots). Its formula is as follows:
+∅i = ∑
+S⊆F\{i}
+|S|!(n − |S| − 1)!
+n! [v(S ∪ {i})− v(S)] (7)
+where ∅i is the SHAP value of feature i; F is the set of all features; S is a
+subset of feature set F that does not include feature i; |S| is the size of
+subset S; and v(S) is the output value (contribution) when the model
+makes predictions using only the features in subset S. The use of SHAP in
+this work primarily serves the following tasks:
+(1) exploring the importance of influencing factors to identify the
+most and least significant factors;
+(2) identifying key thresholds for variables based on SHAP dependence plots, providing the most reasonable thresholds to attract
+street vendor populations or mitigate their distribution;
+(3) after obtaining the SHAP values for the variables in different regions, we linked them to spatial coordinates, associating the
+SHAP values with their corresponding spatial distributions. This
+is possible because we used vector data for modeling, where each
+variable and the Y value are accompanied by coordinate
+information;
+(4) utilizing GeoSHAP to derive the spatial heterogeneity of variable
+impact intensity, indicating that the influence of variables varies
+in different regions. Using the GeoSHAP distribution of all variables as initial input for clustering, we obtain sensitivity zones.
+Policy recommendations are provided, such as in high-sensitivity
+areas, where adding a few recreational facilities or roads could
+attract a large number of street vendors, while in low-sensitivity
+areas, the effects of such additions may be minimal.
+2.3.8. K-Means
+K-Means is an unsupervised learning clustering algorithm whose
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+6
+primary goal is to partition data points into k distinct clusters, such that
+the data points within the same cluster have high similarity, while data
+points in different clusters have low similarity. By iteratively optimizing
+the positions of centroids and the assignment of samples, it minimizes
+the sum of squared errors within clusters, thereby optimizing the clustering result (Kim & Kim, 2023). Its formula is as follows:
+J = ∑k
+i=1
+∑
+x∈Ci
+‖ x − μi
+‖2 (8)
+where J represents the sum of squared errors within clusters, k is the
+predetermined number of clusters, Ci is the sample set of the i th cluster,
+μi is the centroid (geometric center) of the i th cluster, and ‖ x − μi
+‖ is the
+Euclidean distance from sample x to centroid μi
+. We used this conventional clustering method to cluster all GeoSHAP raster variables,
+resulting in sensitivity zones. The meaning of sensitive partitioning
+represents the sensitivity of vendor space to changes in variables. In
+areas with high positive sensitivity, a small increase in infrastructure
+(such as recreational facilities) can lead to a substantial increase in
+vendor space. In areas with low positive sensitivity, this effect is
+somewhat diminished, while in areas with negative sensitivity, the
+impact is reversed.
+2.3.9. DBSCAN
+DBSCAN (Density-Based Spatial Clustering of Applications with
+Noise) is a density-based clustering algorithm (Li et al., 2021) that can
+partition data points in high-density regions into clusters and identify
+noise points in low-density areas. Unlike algorithms such as K-Means,
+DBSCAN does not require a predetermined number of clusters and is
+capable of discovering clusters of arbitrary shapes. It first calculates the
+distances between sample points to determine the ε-neighborhood,
+which is defined by the following formula:
+d(p, q) =
+̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅̅ ∑n
+i=1
+(pi − qi)
+2
+√
+(9)
+where p and q are two data points, n is the number of dimensions, pi and
+qi are the values of sample points p and q in the i th dimensional feature,
+and d(p, q) is the Euclidean distance between sample points p and q.
+Then, core points are selected to determine whether to initiate a new
+cluster or perform density expansion, which is defined by the following
+formula:
+|Nε(P)| ≥ MinPts (10)
+where Nε(P) represents the ε-neighborhood of the sample point P, which
+is the set of all sample points whose distance from P is less than or equal
+to ε; |Nε(P)| is the number of sample points within the ε-neighborhood
+(including the point P itself); and MinPts is the minimum number of
+samples required to consider a point as a core point. We used this
+clustering method to cluster all GeoSHAP raster variables and compared
+it with the K-Means method.
+2.3.10. Agglomerative hierarchical clustering
+Agglomerative Hierarchical Clustering (Gao et al., 2025) is a
+bottom-up clustering method that builds a hierarchy by progressively
+merging the closest clusters until all samples are combined into a single
+large cluster or a stopping condition is met, ultimately resulting in a
+tree-like structure (dendrogram). Different levels of clustering results
+can be obtained by cutting the dendrogram. The distance between all
+pairs of clusters can be calculated using methods including Single
+Linkage (minimum distance), Complete Linkage (maximum distance),
+Average Linkage (mean distance), Centroid Linkage, and Ward Linkage.
+In this study, the Ward method is chosen. The formula for cluster C is as
+follows:
+ESS(C) = ∑
+x∈C
+(x − mx)
+T
+(x − mx) (11)
+where mx represents the mean of the sample points in cluster C. It can be
+observed that ESS measures the cohesion of the sample points within a
+cluster; the more tightly the sample points are aggregated, the smaller
+the ESS value. The Ward method aims to find a merging strategy that
+minimizes the increase in the sum of ESS for the new series of clusters
+formed after merging, relative to the sum of ESS for the clusters before
+the merge. We used this clustering method to cluster all GeoSHAP raster
+variables and compared it with the two aforementioned methods.
+2.3.11. Construction of influencing factor indicator system
+Based on existing research on the logic of informal street vendor
+spatial location, the influencing factors for informal street vendor locations can be divided into three categories. First, there are consumer
+demand factors. The spatial distribution of informal street vendors is
+influenced by market size and the diversity of the consumer population.
+The size of the market directly determines the number of potential
+customers and sales volume for informal businesses, leading vendors to
+prefer locations in densely populated and built-up areas. Additionally,
+the diversity of the consumer population affects the distribution of
+informal vendors, as varying consumer demands encourage informal
+businesses to offer a range of products and services (Anaafo et al., 2024).
+Second, there are facility density factors. Informal street vendor spaces
+do not exist in isolation; they often cluster around public service facilities such as schools, hospitals (Widjajanti, 2016), parks, squares (Sun
+et al., 2022), and shopping malls (Maneepong & Walsh, 2013), which
+provide differentiated vendor services. Third, there are transportation
+accessibility factors. Areas with high transportation accessibility facilitate frequent population movement, offering more trading opportunities
+for informal street vendors (Widjajanti, 2016) and making it easier for
+vendors to travel (Kazembe et al., 2019). Ultimately, the following indicator system has been formed (Table 2).
+Using the number of informal street vendors as the dependent variable and various influencing factors as independent variables, the
+Pearson correlation coefficient method was first employed to calculate
+the correlations between the variables. The results showed that all pairs
+of variables were correlated. Next, an OLS model was used to test
+whether the aforementioned factors were collinear with the number of
+informal street vendors. The VIF values for PPD, WPD, and FMD
+exceeded 7.5 (Fig 4), leading to their exclusion. Ultimately, 13 factors
+were identified as influencing elements.
+3. Results
+3.1. Spatial identification and feature analysis of informal street vendors
+in Wuhan city
+3.1.1. Spatial distribution of informal street vendors in Wuhan city
+At a grid scale of 500 × 500 m, mobile signaling data was used to
+identify 1.21 million data points in Wuhan’s urban central area that
+conform to informal street vendor behavior rules. These data points
+were aggregated and statistically summarized within the grids to indicate the intensity of informal street vendor activities in different urban
+sectors (Fig. 5). Using the Getis-Ord Gi hot spot analysis tool, highconfidence hot spots and cold spots of informal street vendor distribution within the third ring road of Wuhan were identified. The results
+were categorized by statistical significance, with the 90 % significance
+level defined as Level 1 hot spots, the 95 % significance level defined as
+Level 2 hot spots, and the 99 % significance level defined as Level 3 hot
+spots, leading to the identification of spatial aggregation areas for
+informal street vendors in Wuhan (Fig. 6).
+The distribution of informal street vendor activities in Wuhan’s main
+urban area is uneven. Excluding water bodies, 6.5 % of spatial units in
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+7
+the main urban area are identified as cold spots, while 12.2 % are hot
+spots, resulting in an overall spatial distribution pattern characterized
+by "hot in the west and cold in the east." From the perspective of urban
+location conditions, informal street vendors are primarily concentrated
+within and around the second ring road of Wuhan, with high-density
+areas of vendor activity forming in central districts such as Jianghan,
+Wuchang, and Hongshan. This concentration combines with major
+communities and business districts to create two primary hot spots and
+three secondary hot spots.
+In contrast, the distribution of vendors in eastern urban areas, such
+as Jiang’an, Qingshan, and Donghu, is relatively sparse. The identified
+cold spots correspond to areas within the main urban area that are less
+developed, such as the northern economic development zone of Jiang’an
+District and ecological scenic areas and resort areas on both sides of
+northern Donghu Lake. Overall, the spatial distribution pattern of vendors displays a characteristic of being extensive and diverse to the west
+of the Yangtze River, while being concentrated in patches and exhibiting
+clear hot and cold zones to the east. The reasons for the formation of
+each vendor clustering area vary and may encompass local regulations,
+socioeconomic exclusion, and cultural traditions.
+In Wuhan, some clustering areas are located near water bodies, while
+others are in the central urban districts, which is related to the city’s
+riverside culture. Additionally, the construction of greenway projects
+around East Lake has strictly restricted its distribution.
+3.1.2. Analysis of characteristics of informal street vendor aggregation
+areas
+The identified hot spots are overlaid and analyzed in relation to
+urban buildings, roads, and facilities. This analysis, combined with data
+from on-site surveys and field investigations, further explores the effects
+of urban functions and environmental factors on the spatial choices of
+informal street vendors from a meso‑micro perspective.
+The main aggregation areas include the Changqing Zone and the
+Luojia Port Zone (see Fig. 7). The grid-like road network in the
+Changqing area encourages a "patchy aggregation" feature of vendors,
+expanding outward around the Fuxing urban village and Changqing
+Park, with an extension towards the Second Ring Road in the southwest
+direction. The consumer group in this area mainly consists of community residents; therefore, to cater to consumer needs, the vendors primarily offer categories that meet daily needs, such as food snacks, fruits
+and vegetables, daily necessities, clothing and footwear, and miscellaneous goods.
+The Luojia Port area represents a comprehensive aggregation zone
+for vendors, with an overall spatial layout that primarily forms a "linear
+aggregation" pattern extending southwest along the Second Ring Road.
+This area has developed into a major hot spot relying on nearby colleges,
+communities, and wholesale centers. Since the consumers in this region
+consist not only of community residents but also a large number of
+college students and formal commercial consumers, the vendors offer a
+wider variety of products. In addition to daily items such as food snacks,
+fruits and vegetables, daily necessities, clothing and footwear, and
+miscellaneous goods, there are also offerings related to entertainment
+products.
+Moreover, the vendor aggregation area adjacent to Luojia Port is
+mainly distributed along Renhe Road, forming a prominent hot spot
+near the Wugang Sports Center, and extending into the surrounding
+community. In terms of business types, the consumer group in this area
+primarily consists of community residents, thus the vendors also focus
+mainly on daily needs categories such as food snacks, fruits and vegetables, daily necessities, clothing and footwear, and miscellaneous
+goods.
+The secondary aggregation areas include the Erqi Area, Nanhu Area,
+Jianghan Road, and Hanxi Road (Fig. 7). Jianghan Road and Hanzheng
+Street are important commercial districts in Wuhan, where the vendor
+space is primarily characterized by "patchy aggregation," with highdensity areas forming at intersections. In the Jianghan Road commercial district, informal street vendors serve as a complement to formal
+businesses such as supermarkets, mainly offering snacks, accessories,
+toys, and daily necessities. The vendors in the Hanzheng Street commercial district focus on serving nearby residents around older communities, talent apartments, and public service facilities such as
+hospitals and schools, primarily providing items that fulfill residential
+needs.
+The Erqi Area is a typical open informal street vendor aggregation
+zone, concentrated around the Hankou Riverfront and the riverside
+greenbelt, with some vendors gathered in the Houhu community and
+extending along Yexing Road towards the Yayuan Dream City. The
+consumer group in this area mainly consists of community residents,
+leading vendors to focus on business types that cater to daily needs, such
+as food snacks, fruits and vegetables, daily necessities, clothing and
+Table 2
+Influencing Factors of Informal street vendor Spatial Location.
+Level 1 indicators Level 2
+indicators
+Abbreviation Meaning
+Consumer
+Demand
+Present
+population
+density
+PPD Users who stay for >20
+min during the three time
+periods of 6:00–9:00;
+11:00–14:00; 17:00–0:00
+every day
+Residential
+population
+density
+RPD Users who are present at
+the same base station for a
+cumulative total of four
+hours or more between
+22:00 pm. and 5:00 pm.
+each day
+Working
+population
+density
+WPD Users present at the same
+base station for a total of
+four hours or more
+between 9 a.m. and 19
+pm.
+Floor area FA Sum of the areas of the
+floors of the building
+Functional
+mixing degree
+FMD Combined mix of various
+POI facilities
+Facility Density Recreational
+facilities
+density
+RFD Including theatres,
+cinemas, resorts
+Public service
+facilities
+density
+PFD Including educational
+facilities, cultural
+facilities, medical
+facilities and sports
+facilities
+Open space
+density
+OSD Including parks and
+squares
+Catering
+facilities
+density
+CaFD Including restaurants,
+milk tea shops
+Commercial
+facility density
+CoFD Including all kinds of
+department stores,
+supermarkets, shopping
+centres, home building
+materials market, etc.
+Business office
+facilities
+density
+BFD Including offices and
+industrial parks
+Transportation
+Accessibility
+Traffic facilities
+density
+TFD Including bus stops, metro
+stations, car parks
+Inlet and outlet
+density
+IOD Including station
+entrances, residential
+complex entrances, car
+park entrances and
+entrances to other large
+facilities
+Trunk road
+density
+TRD Length of main roads per
+unit of land area
+Secondary
+artery density
+SAD Length of secondary roads
+per unit of land area
+Intersection
+density
+InD Includes all types of road
+junctions
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+8
+footwear, and miscellaneous goods.
+Hanxi Road serves as a district-level commercial center, where the
+vendor space predominantly extends along Jiefang Avenue into the side
+streets, forming a "linear aggregation" around Pan Yue Mall, the riverside greening area, and the Zongguan community. The consumer group
+in this area includes community residents, tourists, and young people,
+thus vendors primarily sell food snacks, fruits and vegetables, daily
+necessities, as well as toys, entertainment products, and fashion items.
+The Nanhu Area is a large urban living space, where the vendor space
+exhibits a "linear aggregation" pattern, creating multiple nodes in the
+Nanhu community, Binguocheng, and the building materials market.
+The business types here are also characterized by diversity, including
+supplementary goods for the building materials market, daily necessities
+for residents, and snacks and toys aimed at park visitors.
+Overall, there are two main types of primary informal street vendor
+aggregation areas. The first type is attached to large communities,
+providing food snacks, fruits and vegetables, and daily necessities to
+these communities. The second type is affiliated with colleges, sports
+centers, and communities, offering food snacks, fruits and vegetables,
+daily necessities, and entertainment products.
+The secondary informal street vendor aggregation areas can also be
+categorized into two types (Table 3). The first type relies on large
+commercial streets, commercial entities, and communities, serving as a
+complement to the formal economy by providing daily necessities and
+food snacks. The second type centers around public service facilities
+such as hospitals and schools, offering targeted goods for specific demand groups.
+3.2. Influencing mechanisms of informal street vendor space distribution
+3.2.1. Comparison of fitted models
+To understand the mechanisms by which various influencing factors
+affect the spatial distribution of informal street vendors, we compared
+several machine learning models and deep learning models to select the
+best regression analysis method (Table 4). The MLP model consists of
+three linear layers and two ReLU layers. The ResNet is composed of two
+Fig. 4. Correlation and Collinearity Test Results (The left side shows the correlation heatmap of the variables, while the right side presents the results of the
+collinearity test).
+Fig. 5. Spatial Distribution Map of Informal street vendors.
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+9
+standard residual blocks and one linear layer. The Transformer is
+generated using the TransformerEncoderLayer module from PyTorch.
+The GNN consists of two GCN modules and two ReLU activations, with
+an adjacency matrix built using KNN (k = 5), where the coordinates used
+are the centroids of each grid cell. All these deep learning models have a
+learning rate of 0.001.
+The results show that in terms of model fit, the R² value of XGBoost is
+significantly higher than that of OLS and GWR, reaching 0.9884, indicating that XGBoost has greater explanatory power. In terms of Mean
+Absolute Error (MAE), the MAE value of XGBoost is much lower than
+that of OLS and GWR, approaching 1, which signifies a higher prediction
+accuracy. Furthermore, in terms of RMSE, XGBoost still demonstrates
+better predictive precision. Therefore, this study selects XGBoost for
+regression analysis, using the default parameters (n_estimators = 100,
+max_depth = 6, learning_rate = 0.3), which has already achieved
+satisfactory results under these conditions. In this task, the performance
+of deep learning models was not as good as that of machine learning
+models (with the Transformer showing the best performance among the
+deep learning models). This may be due to the limited sample size, as
+there are only 1711 sample points within the 500 m x 500 m grids in
+Wuhan. Additionally, to achieve maximum fitting effectiveness, we
+employed an in-bag training strategy, meaning that no separate test set
+was established.
+3.2.2. Impact mechanism analysis based on SHAP
+(1) Analysis of the Importance of Influencing Factors
+As shown in Fig. 8, the top five factors in terms of importance ranking
+are Recreational Facility Density (RFD), Residential Population Density
+(RPD), Floor Area (FA), Commercial Facility Density (CoFD), and
+Catering Facility Density (CaFD), while the factor with the least impact
+is Open Space Density (OSD). In terms of classification importance, the
+facility density factors have the greatest influence on the distribution of
+vendors, followed by transportation environment factors, and finally
+consumer demand factors. From the perspective of average importance
+across different types of factors, consumer demand factors have the
+highest average importance, followed by facility density factors, and
+finally transportation environment factors.
+(2) Analysis of the Driving Directions of Influencing Factors
+From the SHAP beehive plot (Fig. 9), it can be observed that higher
+values of Recreational Facility Density (RFD) are associated with higher
+SHAP values. Moreover, there are more red points distributed along the
+positive axis of SHAP, while blue points are primarily found along the
+negative axis. This indicates a positive correlation between recreational
+facility density and vendor population distribution; in areas where
+recreational facilities are more concentrated, the density of vendors is
+also higher. This is because recreational facilities complement vendor
+services well, attracting a large number of consumers at specific times
+for formal recreational activities, while vendors provide informal and
+diverse selling services before and after these activities.
+Similarly, Residential Population Density (RPD), Floor Area (FA),
+Intersection Density (IoD), Ingress/Egress Density (InD), and Traffic
+Road Density (TRD) are also positively correlated with the distribution
+of vendor populations. This suggests that vendors are more likely to
+cluster in areas with high residential population density, large floor
+areas, high intersection density, concentrated road crossings, and high
+arterial road density.
+On the other hand, high values of Catering Facility Density (CaFD)
+and Temporary Facility Density (TFD) are mostly distributed along the
+negative axis of SHAP, while low values are predominantly found along
+the positive axis. This indicates a negative correlation with vendor
+population distribution—in regions where catering facilities are more
+concentrated, vendor populations tend to decrease. While formal dining
+establishments can provide potential customers for vendors, most of the
+vendor services overlap with dining services. As customers who have
+dined in restaurants are less likely to purchase food from vendors afterwards, the exclusionary effect of formal dining establishments outweighs the complementary effect on vendor spaces.
+Areas with sparse transportation facilities such as bus stops, subway
+stations, and parking lots are more attractive to vendor populations.
+Regions with inadequate transportation infrastructure are often underdeveloped urban areas with insufficient service facilities and low consumption levels, providing vendors with a natural space to thrive.
+Low values of Commercial Facility Density (CoFD) are generally
+found in the negative SHAP value range, indicating that a low density of
+commercial facilities suppresses the aggregation of vendors. When
+commercial facilities are sparse, the commercial atmosphere lacks
+Fig. 6. Analysis of Cold and Hot Spots in the Distribution of Informal street vendor Populations and Identification of Aggregation Areas.
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+10
+vibrancy, making it difficult to attract customers, which is not conducive
+to vendor clustering. However, high values of commercial facility density are found in both the positive and negative SHAP value ranges,
+mostly concentrated in the negative range. This shows that when commercial facility density is high, it has both suppressing and promoting
+effects on vendor populations, with a predominant suppressing effect.
+The balance of these effects depends on whether the service types
+overlap; if they do, the presence of commercial facilities will squeeze the
+vendors’ operating space. On the other hand, if the service types do not
+overlap, this creates a large customer base for vendors.
+High values of Secondary Arterial Density (SAD) are mostly found in
+the positive SHAP value range, indicating that a higher density of
+secondary roads promotes the aggregation of vendor populations. In
+regions with high secondary road density, there is frequent population
+movement, and slower vehicle speeds allow for pedestrian flow to
+linger, providing vendors with customer sources and sales opportunities,
+which is beneficial for aggregation. However, low values exist in both
+positive and negative SHAP value ranges, but mostly in the negative
+range, showing that a lower density of secondary roads has both suppressing and promoting effects on vendor populations, with a predominant suppressing effect. When secondary road density is low, there are
+fewer foot traffic opportunities for vendors. Nevertheless, there may also
+be fewer commercial establishments, which could benefit vendor aggregation in areas lacking certain commercial stores (e.g., industrial
+Fig. 7. Relationship Diagram of Main Informal street vendor Aggregation Areas and Surrounding Built Environment (A: Changqing Area; B: Luojia Port Area; C:
+Jianghan Road and Hanzheng Street Business District; D: Erqi Area; E: Hanxi Road Business District; F: Nanhu Area).
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+11
+Table 3
+Characteristics of Informal street vendor Aggregation Areas in the Main Urban Zone of Wuhan.
+Type of space for
+vendors
+Agglomeration area Dependent space Layout features Business format
+Major clusters
+A:Changqing Cluster Large neighbourhoods, urban villages,
+railway stations
+patchy agglomeration Daily necessities, recreational
+goods, fashion goods
+B:Lujiagang Cluster Communities, colleges, wholesale
+markets, shopping malls
+Belt agglomeration predominates, with
+localised piecemeal agglomeration
+Daily necessities, toys,
+recreational products
+Secondary
+catchment area
+C:Jianghan Road and Hanzheng
+Street Business District
+Communities, shopping streets,
+secondary schools, hospitals, marinas
+patchy agglomeration Daily necessities, snacks and
+catering
+D:Erqi district Neighbourhoods, parks, shopping malls patchy agglomeration daily necessity
+E:Hanxi Road Shopping District Neighbourhoods, parks, shopping malls,
+shopping streets
+banded aggregation Daily necessities, snacks and
+catering
+F:Nanhu district Communities, building materials
+markets, shopping malls
+banded aggregation Daily necessities, building
+materials, recreational goods
+Table 4
+Comparison of Results from All Competing Models.
+Model OLS GWR RF CATBoost MLP ResNet Transformer GNN XGBoost
+R² 0.2738 0.4320 0.8882 0.9745 0.5214 0.7611 0.9525 0.6492 0.9884
+MAE 24.4851 22.0913 9.4685 5.3654 19.2001 15.0045 7.3467 18.0871 3.2876
+RMSE 38.9148 34.4123 15.2673 7.2870 31.5899 20.5486 9.9535 27.7467 4.9085
+Fig. 8. Ranking of the contribution rates of driving factors (the proportion inside the circle represents the total contribution of all factors, the dotted line represents
+the average contribution of each major category).
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+12
+parks).
+Low values of Business Facility Density (BFD), Public Service Facility
+Density (PFD), and Open Space Density (OSD) are generally clustered
+near zero on the SHAP scale, suggesting that low densities of these facilities have negligible suppressing or promoting effects on vendor
+populations. However, high values are distributed across both positive
+and negative SHAP ranges, with a predominance in the positive range,
+indicating that higher densities of the three types of facilities have both
+suppressing and promoting effects on vendor aggregation, with promoting effects being more pronounced. Higher densities of business
+offices, public services, and open spaces attract immediate consumer
+demand from workers, students, patients, and leisure seekers (e.g.,
+breakfast, snacks), promoting vendor clustering. However, these areas
+may also impose restrictions on vending activities (e.g., in star-rated
+office buildings, government departments, municipal plazas), which
+can inhibit vendor aggregation.
+In summary, RFD, RPD, FA, IoD, InD, and TRD are positively
+correlated with vendor population aggregation, while CaFD and TFD are
+negatively correlated. CoFD, SAD, BFD, PFD, and OSD exhibit both
+suppressing and promoting effects on vendor population aggregation.
+(3) Analysis of the Dependency of Influencing Factors and Critical
+Thresholds
+Fig. 10 illustrates the dependency relationships between various
+factors and the vendor population. Through Lowess regression analysis,
+it is found that Residential Population Density (RPD) maintains a positive correlation with SHAP values. When RPD exceeds 2664.37 p /km2,
+it promotes vendor population aggregation, and when it surpasses
+32,000 p/km², all sample points show a positive impact. The promoting
+range of RPD for vendor population aggregation is (2664.37, +∞), while
+its suppressing range is (0, 2664.37). It is worth noting that the applicability of this threshold in other cities requires further evaluation.
+Similarly, the promoting ranges for other factors regarding vendor
+population aggregation are as follows:
+• Floor Area (FA) ∈ (268,443.66, +∞)
+• Recreational Facility Density (RFD) ∈ (8.66, +∞)
+• Public Facility Density (PFD) ∈ (12.98, +∞)
+• Open Space Density (OSD) ∈ (4.38, +∞)
+• Catering Facility Density (CaFD) ∈ (0, 726.43)
+• Commercial Facility Density (CoFD) ∈ (74.96, 1548.58)
+• Business Facility Density (BFD) ∈ (15.99, +∞)
+• Temporary Facility Density (TFD) ∈ (0, 10.01) ∪ (17.60, 30.14) ∪
+(187.96, +∞)
+• Intersection Density (IOD) ∈ (37.26, +∞)
+• Traffic Road Density (TRD) ∈ (2345.8, +∞)
+• Secondary Arterial Density (SAD) ∈ (0, 471.29) ∪ (2200.66,
+6085.07)
+The suppressing ranges for these factors regarding vendor population
+aggregation are:
+• FA ∈ (0, 268,443.66)
+• RFD ∈ (0, 8.66)
+• PFD ∈ (0, 12.98)
+• OSD ∈ (0, 4.38)
+• CaFD ∈ (726.43, +∞)
+• CoFD ∈ (0, 74.96) ∪ (1548.58, +∞)
+• BFD ∈ (0, 15.99)
+• TFD ∈ (10.01, 17.60) ∪ (30.14, 187.96)
+• IOD ∈ (0, 37.26)
+• TRD ∈ (0, 2345.8)
+• SAD ∈ (471.29, 2200.66) ∪ (6085.07, +∞)
+Fig. 9. Beeswarm plot for feature importance of drivers (The color represents the magnitude of the variable’s value, with redder colors indicating higher values and
+bluer colors indicating lower values).
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+13
+3.3. Other interpretable methods (PDP)
+Additionally, to compare the reliability of the SHAP method, we
+utilized a PDP-based explanation method for comparison (Fig 11). The
+PDP can illustrate the functional relationship of one or two feature
+variables’ impact on model prediction results: approximating linear
+relationships, monotonic relationships, or more complex relationships
+(Zhao et al., 2025). From this comparison, it is evident that the lowess
+fitting curve of the scatter plot obtained using the SHAP method is
+generally consistent with the PDP results. However, PDP only reflects
+the average level of the feature variables, neglecting the impact of data
+heterogeneity on the results and failing to quantify the heterogeneity at
+the spatial level. Despite this limitation, the variability observed in these
+variables indicates that they have significant effects on the distribution
+of informal street vendors.
+3.4. Vendor space sensitivity zoning
+Based on the spatial distribution of SHAP values for various
+influencing factors (Fig. 12), K-Means, DBSCAN, and Agglomerative
+Hierarchical Clustering methods are employed to cluster the SHAP
+values. This analysis further delineates sensitivity zones for vendors in
+Wuhan, providing scientific support for the guidance and management
+of vendor spaces.
+3.4.1. Determination of the number of clusters
+The number of clusters for K-Means and Agglomerative Hierarchical
+Clustering is determined based on the inflection point of the silhouette
+coefficient, as we aim to balance diversity and rationality in partitioning. The silhouette coefficient scores for both algorithms, along with the
+dendrogram from the hierarchical clustering algorithm, guide us to
+choose 4 clusters (Fig 13). The parameter sensitivity analysis for the
+DBSCAN algorithm is shown in Table 5. We analyzed the results obtained from all parameters and found a substantial number of noise
+points (− 1 class, which can be regarded as points from all other classes),
+demonstrating the failure of this method in this context. We present the
+best results when eps = 0.3 and min_samples = 7, resulting in 3 clusters,
+which yield the highest silhouette coefficient (the spatial distribution
+Fig. 10. Dependence of variables on PV (a fitted line is drawn using LOWESS, with a mark at 0 to distinguish the critical point between positive and negative
+contributions).
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+14
+patterns of the − 1 class for other parameter results are similar to this).
+3.4.2. Sensitivity partitioning results
+The final partitioning results are shown in Fig. 14. Although the
+DBSCAN algorithm has a high silhouette coefficient, it is ineffective
+when applied to the sensitivity partitioning of vendor spaces. The other
+two types of algorithms produced more reasonable spatial partitions,
+including positive high sensitivity areas, positive low sensitivity areas,
+negative low sensitivity areas, and negative high sensitivity areas. Based
+on the silhouette coefficient scores (Fig. 13), the classification results of
+K-Means are more ideal than those of Agglomerative Hierarchical
+Clustering, making it the chosen method for the final sensitivity
+partitioning.
+K-Means has classified the sensitivity of vendor spaces into four regions, where Region 0 and Region 3 are negative sensitivity areas, while
+Region 1 and Region 2 are positive sensitivity areas. Region 2 is identified as a positive high sensitivity area, meaning that increases in
+various feature values will significantly promote the aggregation of the
+vendor population. Region 0 is classified as a negative high sensitivity
+area, where increases in most feature values will significantly inhibit the
+aggregation of the vendor population. It is noteworthy that some features have a positive influence on the aggregation of the vendor population (e.g., CaFD, OSD, TFD, and SAD). In Region 3, the average SHAP
+values of the features are close to zero, indicating the lowest sensitivity
+and a negligible effect on the aggregation of the vendor population.
+From an impact perspective, the effects of each feature on the aggregation of the vendor population exhibit spatial heterogeneity. The
+same type of feature demonstrates different influencing mechanisms in
+different regions (Fig. 14a and b). RFD shows a strong promoting effect
+on the aggregation of the vendor population in Region 2, a strong
+inhibiting effect in Region 0, a weak promoting effect in Region 1, and
+almost no effect in Region 3. Additionally, the core influencing factors
+vary across different types of regions. In Region 2, the core influencing
+factors, ranked from highest to lowest, are RFD, CoFD, FA, CaFD, and
+RPD. In Region 0, the core influencing factors, also ranked from highest
+to lowest, are RFD, RPD, IOD, and CaFD."
+This study proposed the time-population-space screening method
+based on mobile signaling data, successfully identifying vendor spaces in
+the main urban area of Wuhan. Compared to other methods for identifying vendor spaces, this approach has several advantages.
+In addition, we compared Gaussian Mixture Models (GMM) clustering with spectral clustering. GMM assumes that the data is generated
+from multiple Gaussian distributions and fits the model using the
+Expectation-Maximization (EM) algorithm. Spectral clustering computes the eigenvalues and eigenvectors of the data similarity matrix to
+project the data into a lower-dimensional space for clustering. The results are shown in Fig. 15. From the perspective of partition planning,
+the results of spectral clustering are not ideal, as the discrimination is
+insufficient, resulting in a large number of class 0 regions. Meanwhile,
+the GMM clustering method also produces a partition result where class
+0 represents areas of high positive sensitivity, similar to the positive high
+sensitivity regions generated by K-means. Regions 1 and 2 create some
+areas of positive low sensitivity and negative low sensitivity, which is a
+mixed partition; for instance, Region 1 is positively sensitive to variables
+such as consumption demand type and RFD, while Region 2 is positively
+sensitive to some variables related to traffic and facility density. Region
+Fig. 11. Variable interpretability results based on the PDP method.
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+15
+3, on the other hand, represents a negatively high sensitivity area. The
+results from GMM clustering can provide auxiliary enhancements; for
+the overlapping region 1 between K-means clustering and GMM clustering, this area is most likely to attract street vendor crowds by
+increasing consumption demand variables.
+4. Discussions
+4.1. Advantages and disadvantages of the time-space-population
+screening method
+This study proposed the time-population-space screening method
+based on mobile signaling data, successfully identifying vendor spaces in
+the main urban area of Wuhan. Compared to other methods for identifying vendor spaces, this approach has several advantages. First, it enables the identification of vendor spaces across the entire area during the
+same time period. By analyzing the daily routines of different populations and applying a multi-layered screening process, the study
+accurately identified the vendor population across the entire area and
+localized it spatially. This achieves the identification of vendor spaces
+over the same time period, providing a basis for urban vendor space
+planning and management. Traditional field survey methods can only
+identify individual vendor spaces (Martínez et al., 2018; Anaafo et al.,
+2024). Even if the survey scope is expanded, it is difficult to cover the
+entire vendor population, making it impossible to obtain an identification of vendor spaces within the same time period. Additionally, such
+methods require significant survey effort and exhibit low identification
+efficiency. Street view recognition methods can efficiently and quickly
+identify vendor spaces, but due to the limitations of street view data
+locations, they can only identify vendor spaces along major roads (Liu &
+Liu, 2022), failing to cover the entire vendor population across the same
+time period.
+Second, this method eliminates the randomness in identifying
+vendor spaces. The time-population-space screening method locks in a
+uniform time period that encompasses the entire population, ensuring
+that all vendor activities occur concurrently. Individual mobile signaling
+is tracked, preventing the repeated counting of vendor populations,
+which enhances the accuracy of space identification. In contrast, street
+view recognition methods identify vendor spaces by analyzing images of
+vendor populations, making it difficult to unify the timing of sample
+data; the groups appearing in the photos are also random, leading to
+incidental results.
+Third, the identification method can be applied to other spatial
+recognition tasks. The time-population-space screening method not only
+identifies vendor populations but also detects the spatial distribution of
+permanent residents, transient populations, formally employed individuals, and leisure populations across the entire area. The results
+obtained retain the two aforementioned advantages, providing support
+for related research.
+However, the time-population-space screening method also has
+certain limitations. First, mobile signaling data can only pinpoint the
+locations of base stations, with data accuracy depending on the density
+of base station distribution, resulting in vendor population locations that
+cannot be accurately pinpointed to real-time coordinates. Second, the
+user screening rules established in this study based on the usual
+behavioral patterns of different populations may struggle to distinguish
+Fig. 12. Spatial Distribution of SHAP Values for Various Influencing Factors.
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+16
+specific behavioral groups (e.g., retirees, leisure populations), which
+could lead to potential errors in identification. These errors can be
+corrected through field surveys and research.
+4.2. Spatial analysis exploration and policy recommendations based on
+SHAP explanations
+SHAP can address the ’black box’ problem of the XGBoost model by
+quantifying the contribution of each feature to the model’s predictions.
+If the Shapley value of a feature is positive, it means that the feature
+positively influences the final prediction; conversely, a negative Shapley
+value indicates a negative influence. SHAP explains its impact mechanisms through various visualizations, including bar charts, swarm plots,
+scatter plots, and dependency plots. However, when studying spatial
+issues, it has limitations. Since SHAP explanations remain at the
+numerical level and do not integrate spatial aspects, they struggle to
+reflect spatial heterogeneity and provide precise spatial information for
+policy-making.
+In this study, we applied K-Means, DBSCAN, and Agglomerative
+Hierarchical Clustering to cluster the SHAP values of each feature in an
+attempt to obtain sensitivity partitions. The results indicate that the
+classification outcomes of K-Means are more ideal; based on the signs
+and absolute values of the Shapley values, we successfully identified
+four sensitivity zones: positive high sensitivity, positive low sensitivity,
+negative low sensitivity, and negative high sensitivity. By coupling the
+distribution of informal street vendor spaces with the results of the
+sensitivity partitions (Fig. 16), we can offer important references for
+policy formulation.
+At the level of spatial structure management for informal street
+vendors, in hotspot areas, since these hotspots are all located within the
+positively sensitive zones (Fig. 16), it indicates that the concentration of
+factors such as consumer demand, facility density, and transportation
+accessibility promotes the formation of vendor hotspots. In these hotspot
+areas, if vendor management policies remain unchanged, as urban
+development improves, facility density and transportation accessibility
+will inevitably increase, leading to a further concentration of informal
+street vendor populations. Therefore, it is necessary to rely on large
+residential communities, recreational facilities, commercial establishments, and dining facilities to reasonably establish relatively fixed
+vendor aggregation spaces and capacity limits, thus avoiding the arbitrary expansion of vendor spaces and unrestricted growth of vendor
+populations.
+In cold spot areas, since these areas are all located within negatively
+sensitive zones (Fig. 16), consumer demand, facility density, and
+transportation accessibility exhibit an inhibiting effect on the
+Fig. 13. Silhouette Coefficient Scores and Dendrogram of Hierarchical Clustering Algorithm.
+Table 5
+Parameter Sensitivity Analysis of the DBSCAN Algorithm.
+eps min_samples Clusters Silhouette Score
+0.3 3 6 0.61
+0.3 5 4 0.75
+0.3 7 3 0.79
+0.5 3 4 0.41
+0.5 5 3 0.46
+0.5 7 Not enough —
+0.7 3 7 0.32
+0.7 5 3 0.37
+0.7 7 2 0.44
+1 3 14 0.08
+1 5 4 0.16
+1 7 3 0.26
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+17
+concentration of vendor populations, indicating that it is difficult to
+gather informal street vendors in these areas. Moreover, many of the
+negatively high-sensitive zones are located around water bodies.
+Wuhan, known as the City of Hundreds of Lakes, has large urban green
+spaces and parks surrounding water bodies such as the Yangtze River,
+Han River, and East Lake. These areas are vast and sparsely populated,
+with well-established commercial infrastructure, making it difficult to
+attract vendor concentrations. As the construction of park green spaces
+continues to improve, the population of vendors will further decrease.
+Therefore, in the cold spot areas and negatively sensitive zones, it is only
+necessary to improve commercial facilities to meet residents’ living
+needs, without the need to deliberately guide informal street vendor
+populations to gather, thus avoiding resource wastage.
+In the non-cold hotspot areas for informal street vendors, there are
+also five positively sensitive zones located within non-cold hotspot areas
+for vendors (highlighted in purple boxes in Fig. 16b), indicating that, at
+this stage, the vendor population in these areas is not significant but has
+the potential to become vendor-friendly spaces. Therefore, it is essential
+to focus on managing the aforementioned positively sensitive zones,
+controlling or reserving vendor aggregation spaces in conjunction with
+regional functions. For instance, implementing compulsory measures to
+control vendor population aggregation within administrative districts,
+while encouraging vendor gatherings around schools, hospitals, sports
+centers, commercial areas, and communities.
+At the level of site selection for informal street vendor spaces, these
+areas tend to be concentrated around recreational facilities, large
+communities, commercial establishments, and regions with high intersection and entrance density. Therefore, priority should be given to
+adding vendor zones in such areas. Regions densely populated with
+dining facilities and transportation amenities (such as bus stops, subway
+stations, and parking lots) are not suitable for the addition of vendor
+booths. Furthermore, areas near administrative offices, parks, scenic
+spots, and urban squares are also unsuitable for vendor operations;
+therefore, control zones should be designated in these areas to prohibit
+the establishment of vendor stalls.
+In terms of internal spatial organization, to avoid disrupting spatial
+order, it is necessary to anticipate the impacts that the introduction of
+vendor zones may have on urban traffic and pedestrian flow. This can be
+achieved by leaving open spaces, designating vendor points, and guiding
+pedestrian flow through dedicated pathways, thereby reducing the risk
+of overflow caused by vendors attempting to attract customers. Additionally, vendors should be categorized and zoned based on the types of
+products or services they offer to minimize mutual interference and
+enhance vendor complementarity and customer targeting. Vendor
+spaces close to consumer-oriented facilities should pay attention to
+spatial differences, establishing vendor zones in areas where commercial
+facilities are insufficient or of lower quality, thereby forming a cluster in
+conjunction with formal commercial establishments to meet the varying
+needs of residents.
+Fig. 14. Clustering partition results based on SHAP values (a: clustering spatial distribution; b: group feature profile; c: t-SNE visualization of clustering).
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+18
+4.3. Research shortcomings and prospects
+This paper focuses on hotspots of vendor space from a macro-spatial
+distribution perspective and does not examine temporal variations in
+vendor locations at different times. Future research could examine
+within-day peak periods to study how vendors’ spatio-temporal choices
+lead to changes in behavior and thereby inform more targeted management strategies. Our study is essentially a sampling survey: not
+everyone uses the same mobile carrier, and some vendors may possess
+two SIM cards from the same carrier, which could introduce
+Fig. 15. Comparison of clustering partition results based on SHAP values (a: clustering spatial distribution; b: group feature profiles; c: t-SNE visualization
+of clusters).
+Fig. 16. Coupling map of vendor space cold and hot spot distribution and sensitivity partitions (a: Vendor space cold and hot spot distribution; b: Sensitivity partitions).
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+19
+measurement error. When extending this approach to other Chinese
+cities, researchers should first survey the primary mobile carriers used
+by vendors (China Mobile, China Unicom, and China Telecom). When
+applying the method to less-developed cities abroad, one should
+consider data availability and access (e.g., whether mobile signaling is
+widely deployed) and whether infrastructure-related variables need to
+be adjusted.
+The research perspective of this article is concentrated on the spatial
+distribution and site selection at a macro scale. However, as vendor
+spaces represent a flexible form of informal space, further research is
+needed at the micro scale. In future studies, typical cases of vendor
+spaces will be analyzed in depth to examine their spatial characteristics
+and mechanisms of change.
+Elshater and Abusaada (2024) conducted a study in Cairo, Egypt,
+using spatial ethnography to investigate the place-management processes in areas where street food activities occur. Focus group interviews
+were carried out with a random sample of street food vendors and
+consumers to elicit vendor and consumer preferences. That work
+confirmed the significant impact of street food on its surrounding
+environment and emphasized the importance of people–place relationships. Our study also uses a survey-based approach, but focuses on the
+quantitative analysis of space.
+Using 208 questionnaires and 3 key interviews, this study examines
+street food vendors’ site selection in Sunyani (Anaafo et al., 2024). The
+findings show that vendors are largely women with low education and
+skills, operating in unauthorized public spaces; their location choices are
+driven by customer demand and factors such as proximity to the city
+center, transport hubs, main roads, low cost and available space, as well
+as time of day. The study recommends integrating vendors into urban
+planning with supporting infrastructure, improving licensing and spatial
+allocation efficiency, and strengthening monitoring and revenue mobilization to regularize activities and optimize urban spatial relations.
+However, they did not address how infrastructure should be strengthened or which specific infrastructures are needed to support them. Our
+study addresses this gap: we treat the issue as a planning problem, in line
+with the author’s perspective.
+Urban metabolism (UM) often overlooks informal resource flows.
+This paper (Choueiri et al., 2025) defines informality and analyzes its
+manifestations in water, energy, waste, food, and transport, proposing a
+framework to incorporate informal processes into UM. It notes that
+integrating formal and informal systems is complex and requires flexible
+regulation; informal flows exacerbate inequalities in access, affordability, and gender, necessitating equity-oriented policies; and informal
+actors should be included in planning. That study proposes a framework
+for regulating the informal economy, and our research responds to this
+measure—an extension that can help achieve more equitable, efficient
+resource governance and sustainable urban development.
+The informal economy plays a significant role in employment in Cali.
+Based on two surveys of 637 and 300 participants (Martinez &
+Rivera-Acevedo, 2018), the study finds that although street vendors
+work in unregulated, low-tax activities and receive government benefits,
+most are excluded from the formal banking system and therefore rely on
+payday loans with very high interest rates. These short-term loans
+consume a large share of income and entrench long-term indebtedness,
+posing a major barrier to improving livelihoods; daily cash flows mask
+the high opportunity costs and long-term deficits of such borrowing. The
+study recommends using impact investments/impact bonds, blockchain
+and similar technologies to reduce transaction costs and promote
+financial formalization, prioritizing regulated financial channels as an
+alternative to simple evictions and spatial control measures. In our
+research, although we include spatial regulation in our policy recommendations, we do not want this to legitimize harsh enforcement. To
+prevent vendors from being marginalized and stigmatized, we also
+advocate a mix of measures—such as financial investment and participatory governance mechanisms—to enhance legitimacy.
+The normative significance of delineating vendor sensitive areas lies
+in: 1. identifying the most effective measures to attract or deter vendor
+clustering in specific regions; 2. recognizing potential vendor gathering
+spaces to guide government decision-making and public participation.
+For instance, the public can refer to certain potential high-sensitivity
+areas where the effects of vendor activities may be similar to those in
+other regions. This may prevent excessive concentration in specific
+areas, and the government can encourage vendor activities in these
+potential locations. Although this approach may increase the rationale
+for law enforcement, it can be balanced through guidance and public
+consultation.
+Initially, the government’s planning can adopt a more encouraging
+stance rather than a one-size-fits-all approach, aiming to avoid stigmatizing or spatially marginalizing informal actors as much as possible. The
+geographic transferability of this method is promising, as mobile signal
+bases are now widespread in urban areas, and other data are relatively
+easy to obtain. If combined with participatory or survey data, the results
+will likely be more accurate. In the future, a participatory mechanism
+could be introduced, such as establishing vendor associations to provide
+practical recommendations and allow for timely adjustments based on
+feedback from the results.
+5. Conclusions
+This study utilizes mobile signaling data to construct a time-spacepopulation screening method to identify the informal street vendor
+spaces across the entire urban area. The XGBoost and SHAP analysis are
+employed to examine the influencing mechanisms of these vendor
+spaces. Finally, by clustering the SHAP values of various factors, we
+identify sensitivity zones for informal street vendor spaces and propose
+suggestions for site selection and management. The research findings
+indicate:
+(1) The main urban area of Wuhan has formed two major clusters and
+four minor clusters of vendor spaces, mainly adjacent to large
+communities, schools, sports centers, commercial districts, and
+hospitals.
+(2) Among the factors influencing vendor clustering, those related to
+consumer demand are the most important, followed by facility
+density factors, and finally traffic environment factors.
+(3) In terms of driving directions, factors such as RFD (Recreational
+facilities density), RPD (Residential population density), FA
+(Floor area), IoD (Inlet and outlet density), InD (Intersection
+density), and TRD (Trunk road density) are positively correlated
+with vendor clustering, while CaFD (Catering facilities density),
+TFD (Traffic facilities density) are negatively correlated. CoFD
+(Commercial facility density), SAD (Secondary artery density),
+BFD (Business office facilities density), PFD (Public service facilities density), and OSD (Open space density) have both inhibiting and promoting effects on vendor clustering.
+(4) The promoting or inhibiting effects of each factor on vendor
+clustering exhibit spatial heterogeneity and may vary across
+different sensitivity zones.
+(5) Hotspot/coldspot areas of vendor spaces are all located within
+positively/negatively sensitive zones, indicating a high degree of
+coupling between the two.
+(6) This study provides the government with practical and feasible
+recommendations for managing vendor spaces by delineating
+sensitive areas to identify regions where efforts to attract and
+deter vendors would be most effective. To support vendors, it is
+advisable to enhance infrastructure with the highest SHAP mean
+values in positively sensitive areas, which represents a potential
+form of support. Additionally, the design of shared spaces, merchant corridors, or micro-infrastructures could be considered.
+The use of monthly data in this study may overlook certain extreme
+weather events and seasonal fluctuations, and there are limitations in
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+20
+the clustering algorithms and data that may hinder capturing the fluidity
+of the informal economy. In the future, longitudinal comparisons could
+be conducted in other cities, such as Shenzhen and Shanghai.
+Data availability
+We are grateful to all the sites that provide the data, including China
+Unicom Subscriber Data, National Geographic Information Public Service Platform (https://ww w.tianditu.gov.cn), Gaode Open Platform
+(https://lbs.amap.com/).
+CRediT authorship contribution statement
+Heng Zhou: Writing – original draft, Methodology, Funding acquisition, Conceptualization. Kui Yang: Writing – review & editing,
+Methodology, Investigation. Jingnan Huang: Writing – review & editing, Supervision, Resources. Jun Huang: Visualization, Investigation.
+Yixuan Gao: Formal analysis. Jinting Zhang: Writing – review &
+editing, Software. Yong Chen: Project administration. Mengya Yu:
+Formal analysis.
+Declaration of competing interest
+The authors declare the following financial interests/personal relationships which may be considered as potential competing interests:
+Acknowledgments
+This research was funded by Social Science Research Project of Education Department of Hubei Province under Grants 2023–6–717 and
+2023–6–718, Construction Science and Technology Planning Project of
+Hubei Province under Grants [2022] 2198–122 and [2022] 2198–1.
+Supplementary materials
+Supplementary material associated with this article can be found, in
+the online version, at doi:10.1016/j.scs.2025.106858.
+References
+Adama, O. (2020). Abuja is not for the poor: Street vending and the politics of public
+space. Geoforum; journal of physical, human, and regional geosciences, 109, 14–23.
+Anaafo, D., Nutsugbodo, R. Y., Agyepong, E., Anane, G. K., Mensah, B. A., & Bata, P. D.
+(2024). Place making decisions among informal street food vendors in Sunyani,
+Ghana. Cities (London, England), 154.
+Bandauko, E., & Arku, G. (2024). It is no longer the sunshine city, it is now a dump site
+city”: Discursive construction of urban space and street trading in Harare,
+Zimbabwe. Cities, 155.
+Boonjubun, C. (2017). Conflicts over streets: The eviction of Bangkok street vendors.
+Cities (London, England), 70, 22–31.
+Chen, Y., Yang, J., Yu, W., Ren, J., Xiao, X., & Xia, J. C. (2023). Relationship between
+urban spatial form and seasonal land surface temperature under different grid scales.
+Sustainable Cities and Society, 89, Article 104374. https://doi.org/10.1016/j.
+scs.2022.104374
+Choueiri, Y., Perrotti, D., & Acevedo-De-los-Ríos, A. (2025). Characterizing informality in
+urban resource management: Towards an integrated framework of urban
+metabolism and informal flows. Land Use Policy, 151, Article 107472. https://doi.
+org/10.1016/j.landusepol.2025.107472
+Elshater, A., & Abusaada, H. (2024). Proactive insights into place management:
+Spatiotemporal effects of street food activities in public spaces. Journal of Place
+Management and Development, 17, 442–463. https://doi.org/10.1108/JPMD-10-
+2023-0103
+Farinmade, A., Soyinka, O., & Siu, K. W. M. (2018). Assessing the effect of urban informal
+economic activity on the quality of the built environment for sustainable urban
+development in Lagos, Nigeria. Sustainable Cities and Society, 41, 13–21.
+Flock, R., & Breitung, W. (2015). Migrant street vendors in urban China and the social
+production of public space. Population, Space and Place,, 22, 158–169.
+Gao, J., Qu, L., & Wu, W. (2025). Spatial-temporal variation of surface temperature and
+cold island network construction in the Yangtze River delta urban agglomeration:
+Perspectives from current and future scenarios. Sustainable Cities and Society, 126,
+Article 106396. https://doi.org/10.1016/j.scs.2025.106396
+Huang, G., Xue, D., & Wang, Y. (2019). Governmentality and spatial strategies: Towards
+formalization of street vendors in Guangzhou, China. International Journal of Urban
+and Regional Research, 43, 442–459.
+Kamete, A. Y. (2018). Pernicious assimilation: Reframing the integration of the urban
+informal economy in Southern Africa. Urban Geography, 39, 167–189.
+Kazembe, L. N., Nickanor, N., & Crush, J. (2019). Informalized containment: Food
+markets and the governance of the informal food sector in Windhoek, Namibia.
+Environment and Urbanization, 31, 461–480.
+Kim, Y., & Kim, Y. (2023). Global regionalization of heat environment quality perception
+based on K-means clustering and Google trends data. Sustainable Cities and Society,
+96, Article 104710. https://doi.org/10.1016/j.scs.2023.104710
+Lemessa, S. D., Watabaji, M. D., Yismaw, M. A., & Tadesse, A. B. (2021). Evening street
+vending and the tragic living conditions of vendors: The case of eastern Ethiopia
+region. Cities (London, England), 108.
+Li, B., Peng, Y., He, H., Wang, M., & Feng, T. (2021). Built environment and early
+infection of COVID-19 in urban districts: A case study of Huangzhou. Sustainable
+Cities and Society, 66, Article 102685. https://doi.org/10.1016/j.scs.2020.102685
+Li, C., Huang, Y., Shen, Y., & Xu, L. (2022). Spatiotemporal patterns and mechanisms of
+street vending from the social sensing perspective: A comparison between lawenforcement reported and residents complain events. Cities (London, England), 124.
+Li, J., Ren, L., Hu, T., & Wang, F. (2018). A city’s “urban crack” at 4 a.m.: A case study of
+morning market vendors in Beijing’s Longfu Temple area. Habitat International, 71,
+14–21.
+Linares, L. A. (2018). The paradoxes of informalizing street trade in the Latin American
+city. International Journal of Sociology and Social Policy, 38, 651–672.
+Lindell, I. (2019). Introduction: Re-spatialising urban informality: Reconsidering the
+spatial politics of street work in the global South. International Development Planning
+Review, 41, 3–21.
+Liu, Y., & Liu, Y. (2022). Detecting the city-scale spatial pattern of the urban informal
+sector by using the street view images: A street vendor massive investigation case.
+Cities (London, England), 131.
+Maneepong, C., & Walsh, J. C. (2013). A new generation of Bangkok Street vendors:
+Economic crisis as opportunity and threat. Cities (London, England), 34, 37–43.
+MART´INEZ, L., Short, J. R., & Estrada, D. (2017). The urban informal economy: Street
+vendors in Cali. Colombia. Cities, 66, 34–43.
+Martinez, L., & Rivera-Acevedo, J. D. (2018). Debt portfolios of the poor: The case of
+street vendors in Cali. Colombia. Sustainable Cities and Society, 41, 120–125. https://
+doi.org/10.1016/j.scs.2018.04.037
+Martínez, L., Short, J. R., & Estrada, D. (2018). The diversity of the street vending: A case
+study of street vending in Cali. Cities (London, England), 79, 18–25.
+Ojeda, L., & Pino, A. (2019). Spatiality of street vendors and sociospatial disputes over
+public space: The case of Valparaíso, Chile. Cities (London, England), 95.
+Onodugo, V. A., Ezeadichie, N. H., Onwuneme, C. A., & Anosike, A. E. (2016). The
+dilemma of managing the challenges of street vending in public spaces: The case of
+Enugu City, Nigeria. Cities, 59, 95–101.
+Pel´
+aez-Higuera, J., Calderon-Hern ´ ´
+andez, G., & Serna-Gomez, ´ H.-M. (2023). Social,
+commercial and economic diversity. Poverty and expectations among street vendors
+in Florencia, Caqueta, ´ Colombia. Cities (London, England), 140.
+Recchi, S. (2020). Informal street vending: A comparative literature review. International
+Journal of Sociology and Social Policy, 41, 805–825.
+Roy, A. (2005). Urban informality: Toward an epistemology of planning. Journal of the
+American Planning Association, 71, 147–158. https://doi.org/10.1080/
+01944360508976689
+Sun, Z., Scott, I., Bell, S., Yang, Y., & Yang, Z. (2022). Exploring dynamic street vendors
+and pedestrians through the lens of static spatial configuration in Yuncheng, China.
+Remote Sensing, 14.
+Thanh, P. T., & Duong, P. B. (2022). The COVID-19 pandemic and the livelihood of a
+vulnerable population: Evidence from women street vendors in urban Vietnam. Cities
+(London, England), 130.
+Thomas Devlin, R. (2018). Global Best practice or regulating fiction? Street vending, zero
+tolerance and conflicts over public space in New York, 1980–2000. International
+Journal of Urban and Regional Research, 42, 517–532.
+Wang, C., Yang, K., Yang, W., Li, R., Qiang, H., Lu, B., Su, B., & Yang, Z. (2024).
+Assessment of the urban habitat quality service functions and their drivers based on
+the fusion module of graph attention network and residual network. International
+Journal of Digital Earth, 17, Article 2306310. https://doi.org/10.1080/
+17538947.2024.2306310
+Widjajanti, R. (2016). The space utilization by street vendors based on the location
+characteristics in the education area of Tembalang, Semarang. Procedia - Social and
+Behavioral Sciences, 227, 186–193.
+Yang, K., Zhang, J., Cui, D., Ma, Y., Ye, Y., He, X., Yang, Z., Cheng, M., & Zhang, Y.
+(2025). Multi-scale study of the synergy between human activities and climate
+change on urban heat islands in China. Sustainable Cities and Society, 125.
+Yang, K., Zhou, P., Wu, J., Yao, Q., Yang, Z., Wang, X., & Wen, Y. (2024). Carbon stock
+inversion study of a carbon peaking pilot urban combining machine learning and
+Landsat images. Ecological Indicators, 159, Article 111657. https://doi.org/10.1016/
+j.ecolind.2024.111657
+Yi, S., Li, X., Wang, R., Guo, Z., Dong, X., Liu, Y., & Xu, Q. (2024). Interpretable spatial
+machine learning insights into urban sanitation challenges: A case study of human
+feces distribution in San Francisco. Sustainable Cities and Society, 113.
+Zhang, J., Yang, K., Wu, J., Duan, Y., Ma, Y., Ren, J., & Yang, Z. (2024). Scenario
+simulation of carbon balance in carbon peak pilot cities under the background of the
+“dual carbon” goals. Sustainable Cities and Society, 116, Article 105910. https://doi.
+org/10.1016/j.scs.2024.105910
+Zhao, X., Huang, H., Lin, G., & Lu, Y. (2025). Exploring temporal and spatial patterns and
+nonlinear driving mechanism of park perceptions: A multi-source big data study.
+Sustainable Cities and Society, 119, Article 106083. https://doi.org/10.1016/j.
+scs.2024.106083
+H. Zhou et al. Sustainable Cities and Society 133 (2025) 106858
+21

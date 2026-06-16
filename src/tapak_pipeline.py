@@ -7,31 +7,28 @@
 
 # %%
 # ─── Imports ──────────────────────────────────────────────────────────────────
-import os
 import json
+import os
 import time
 import warnings
-import requests
 
-import numpy as np
-import pandas as pd
 import geopandas as gpd
 import matplotlib
+import numpy as np
+import pandas as pd
+import requests
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import seaborn as sns
-
-from shapely.geometry import box, LineString, Point
-from shapely.ops import unary_union
-
-import osmnx as ox
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, roc_auc_score, confusion_matrix
-from xgboost import XGBClassifier
-import shap
 import folium
+import matplotlib.pyplot as plt
+import osmnx as ox
+import seaborn as sns
+import shap
+from shapely.geometry import LineString, Point, box
+from shapely.ops import unary_union
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+from sklearn.model_selection import train_test_split
+from xgboost import XGBClassifier
 
 warnings.filterwarnings("ignore")
 
@@ -39,7 +36,7 @@ warnings.filterwarnings("ignore")
 # ## Step 1 — Configuration Block
 
 # %%
-print(f"\n{'='*50}\nSTEP 1: Configuration\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 1: Configuration\n{'=' * 50}")
 
 CONFIG = {
     # Bandung bounding box [west, south, east, north]
@@ -94,7 +91,7 @@ print(f"Output directory ready: {CONFIG['output_dir']}")
 # ## Step 2 — Create Spatial Grid
 
 # %%
-print(f"\n{'='*50}\nSTEP 2: Create Spatial Grid\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 2: Create Spatial Grid\n{'=' * 50}")
 
 west, south, east, north = CONFIG["bbox"]
 cell_size = CONFIG["cell_size"]
@@ -125,7 +122,7 @@ print(f"Total cells created: {len(grid)}")
 # ## Step 3 — Load & Process Population Density (Real Data)
 
 # %%
-print(f"\n{'='*50}\nSTEP 3: Population Density\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 3: Population Density\n{'=' * 50}")
 
 
 def parse_indonesian_number(val):
@@ -297,7 +294,7 @@ print(grid["pop_density_norm"].describe())
 # ## Step 4 — Query OSM via Overpass API
 
 # %%
-print(f"\n{'='*50}\nSTEP 4: Overpass API Queries\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 4: Overpass API Queries\n{'=' * 50}")
 
 
 # Headers required by Overpass API — omitting User-Agent causes 406 Not Acceptable
@@ -396,7 +393,7 @@ W, S, E, N = BBOX
 OVERPASS_BBOX = f"{S},{W},{N},{E}"
 
 QUERY_4A = f"""
-[out:json][timeout:{CONFIG['overpass_timeout']}][bbox:{OVERPASS_BBOX}];
+[out:json][timeout:{CONFIG["overpass_timeout"]}][bbox:{OVERPASS_BBOX}];
 (
   node[amenity=school];
   way[amenity=school];
@@ -417,7 +414,7 @@ out center;
 """
 
 QUERY_4B = f"""
-[out:json][timeout:{CONFIG['overpass_timeout']}][bbox:{OVERPASS_BBOX}];
+[out:json][timeout:{CONFIG["overpass_timeout"]}][bbox:{OVERPASS_BBOX}];
 (
   node[amenity=hospital];
   way[amenity=hospital];
@@ -430,7 +427,7 @@ out center;
 """
 
 QUERY_4C = f"""
-[out:json][timeout:{CONFIG['overpass_timeout']}][bbox:{OVERPASS_BBOX}];
+[out:json][timeout:{CONFIG["overpass_timeout"]}][bbox:{OVERPASS_BBOX}];
 (
   way[leisure=park];
   relation[leisure=park];
@@ -441,7 +438,7 @@ out center;
 """
 
 QUERY_4D = f"""
-[out:json][timeout:{CONFIG['overpass_timeout']}][bbox:{OVERPASS_BBOX}];
+[out:json][timeout:{CONFIG["overpass_timeout"]}][bbox:{OVERPASS_BBOX}];
 (
   way[highway=primary];
   way[highway=primary_link];
@@ -512,15 +509,27 @@ if len(gdf_poi) == 0:
     try:
         W, S, E, N = CONFIG["bbox"]
         _poi_tags = {
-            "amenity": ["school", "university", "marketplace", "bus_station", "food_court"],
+            "amenity": [
+                "school",
+                "university",
+                "marketplace",
+                "bus_station",
+                "food_court",
+            ],
             "shop": ["supermarket", "mall"],
         }
         _ox_pois = ox.features_from_bbox((N, S, E, W), tags=_poi_tags)
         _rows = []
         for _, feat in _ox_pois.iterrows():
             c = feat.geometry.centroid
-            _rows.append({"amenity_type": "osmnx_poi", "lat": c.y, "lon": c.x,
-                          "geometry": Point(c.x, c.y)})
+            _rows.append(
+                {
+                    "amenity_type": "osmnx_poi",
+                    "lat": c.y,
+                    "lon": c.x,
+                    "geometry": Point(c.x, c.y),
+                }
+            )
         if _rows:
             gdf_poi = gpd.GeoDataFrame(_rows, crs="EPSG:4326")
             print(f"  osmnx fallback: {len(gdf_poi)} POIs retrieved.")
@@ -582,7 +591,7 @@ if len(gdf_roads) == 0:
     except Exception as _e:
         print(f"  osmnx road fallback also failed: {_e}")
 
-print(f"\nFeatures retrieved:")
+print("\nFeatures retrieved:")
 print(f"  4A — Commercial POIs : {len(gdf_poi)}")
 print(f"  4B — Civic/Health    : {len(gdf_civic)}")
 print(f"  4C — Parks           : {len(gdf_parks)}")
@@ -592,7 +601,7 @@ print(f"  4D — Road segments   : {len(gdf_roads)}")
 # ## Step 5 — Compute Real Features per Grid Cell
 
 # %%
-print(f"\n{'='*50}\nSTEP 5: Compute Real Features\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 5: Compute Real Features\n{'=' * 50}")
 
 # ── Feature 5A: POI Cluster Score ────────────────────────────────────────────
 print("Computing POI Cluster Score (5A) …")
@@ -651,7 +660,7 @@ print(
 # ## Step 6 — Fabricate Synthetic Features
 
 # %%
-print(f"\n{'='*50}\nSTEP 6: Fabricate Synthetic Features\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 6: Fabricate Synthetic Features\n{'=' * 50}")
 
 # Seeded RNG for full reproducibility
 rng = np.random.default_rng(CONFIG["synthetic_seed"])
@@ -761,7 +770,7 @@ print(
 # ## Step 7 — Rule-Based Labeling
 
 # %%
-print(f"\n{'='*50}\nSTEP 7: Rule-Based Labeling\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 7: Rule-Based Labeling\n{'=' * 50}")
 
 # ── Build exclusion buffers from 4B (hospitals, places of worship) ────────────
 EXCLUDE_BUFFER_DEG = 80 / 111_320  # ~80 meters in degrees
@@ -854,15 +863,15 @@ grid["label_confidence"] = (
 
 n_pos = (grid["label"] == 1).sum()
 n_neg = (grid["label"] == 0).sum()
-print(f"\nFinal class distribution:")
-print(f"  Suitable   (label=1): {n_pos} ({n_pos/len(grid):.2%})")
-print(f"  Unsuitable (label=0): {n_neg} ({n_neg/len(grid):.2%})")
+print("\nFinal class distribution:")
+print(f"  Suitable   (label=1): {n_pos} ({n_pos / len(grid):.2%})")
+print(f"  Unsuitable (label=0): {n_neg} ({n_neg / len(grid):.2%})")
 
 # %% [markdown]
 # ## Step 8 — Assemble Feature Matrix
 
 # %%
-print(f"\n{'='*50}\nSTEP 8: Assemble Feature Matrix\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 8: Assemble Feature Matrix\n{'=' * 50}")
 
 FEATURE_COLS = [
     "pop_density_norm",
@@ -897,7 +906,7 @@ print("Saved: output/feature_matrix.csv")
 # ## Step 9 — Train XGBoost Model
 
 # %%
-print(f"\n{'='*50}\nSTEP 9: Train XGBoost Model\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 9: Train XGBoost Model\n{'=' * 50}")
 
 X = feature_matrix[FEATURE_COLS].values
 y = feature_matrix["label"].values
@@ -976,7 +985,7 @@ print(f"Saved: {CONFIG['model_path']}")
 # ## Step 10 — SHAP Explainability
 
 # %%
-print(f"\n{'='*50}\nSTEP 10: SHAP Explainability\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 10: SHAP Explainability\n{'=' * 50}")
 
 explainer = shap.TreeExplainer(model)
 shap_values = explainer(X_test)
@@ -1027,7 +1036,7 @@ for rank, idx in enumerate(top3_idx, 1):
 # ## Step 11 — Score All Grid Cells & Output
 
 # %%
-print(f"\n{'='*50}\nSTEP 11: Score All Grid Cells\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 11: Score All Grid Cells\n{'=' * 50}")
 
 # Predict on full feature matrix
 X_full = feature_matrix[FEATURE_COLS].values
@@ -1064,13 +1073,13 @@ print(f"Saved: {CONFIG['grid_output']}")
 zone_counts = grid_scored["zone_class"].value_counts()
 print("\nZone distribution:")
 for zone, count in zone_counts.items():
-    print(f"  {zone}: {count} ({count/len(grid_scored):.2%})")
+    print(f"  {zone}: {count} ({count / len(grid_scored):.2%})")
 
 # %% [markdown]
 # ## Step 12 — Folium Interactive Map
 
 # %%
-print(f"\n{'='*50}\nSTEP 12: Folium Interactive Map\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 12: Folium Interactive Map\n{'=' * 50}")
 
 ZONE_COLORS = {
     "Highly Suitable": "#2ecc71",
@@ -1150,7 +1159,7 @@ print(f"Map saved to {CONFIG['map_output']} — open in browser to view.")
 # ## Step 13 — Sanity Check
 
 # %%
-print(f"\n{'='*50}\nSTEP 13: Sanity Check\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 13: Sanity Check\n{'=' * 50}")
 
 VALIDATION_POINTS = [
     ("Jl. Cihampelas", 107.608, -6.900),
@@ -1196,7 +1205,7 @@ if passes < 2:
 # ## Step 14 — Summary Report
 
 # %%
-print(f"\n{'='*50}\nSTEP 14: Output Summary\n{'='*50}")
+print(f"\n{'=' * 50}\nSTEP 14: Output Summary\n{'=' * 50}")
 
 output_files = [
     os.path.join(CONFIG["output_dir"], "feature_matrix.csv"),
